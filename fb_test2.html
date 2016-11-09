@@ -1,0 +1,503 @@
+<!DOCTYPE html WIN-SCP>
+<html>
+<head>
+  <title>Facebook Login JavaScript Example</title>
+  <meta charset="UTF-8">
+  <script src="underscore-min.js"></script>
+  <script src="jquery-latest.js"></script>
+</head>
+<body>
+<script>
+  var users_to=new Array();
+  var user_id = "";
+  var mi_nombre = "";
+  var birthday = "";
+  var gender = "";
+  var email = "";
+  var location = "";
+  var friends_num_bool;
+  var friends_num=100;
+  var likes_num=20;
+  var likes_num_bool;
+  var photos_tagged=5;
+  var photos_tagged_bool;
+  var feed_num=7;
+  var feed_num_bool;
+  var feed_counter=0;
+  var anho_post;
+  var anho_foto;
+  var anho_like;
+  var yo_duplicado=true;
+  var likes_counter=0;
+
+  function contiene(list,obj)
+  {
+    var retorno=false;
+    for(i=0;i<list.length;i++)
+    {
+      if(list[i].name==obj.name)
+      {
+        retorno=true;
+        break;
+      }
+    }
+
+    return retorno;
+  }
+  // This is called with the results from from FB.getLoginStatus().
+  function statusChangeCallback(response) {
+    console.log('statusChangeCallback');
+    console.log(response);
+    var access_token = response.authResponse.accessToken;
+    console.log("access_token:"+access_token);
+
+    // The response object is returned with a status field that lets the
+    // app know the current login status of the person.
+    // Full docs on the response object can be found in the documentation
+    // for FB.getLoginStatus().
+    if (response.status === 'connected') {
+      // Logged into your app and Facebook.
+      testAPI(access_token);
+    } else if (response.status === 'not_authorized') {
+      // The person is logged into Facebook, but not your app.
+      document.getElementById('status').innerHTML = 'Please log ' +
+        'into this app.';
+    } else {
+      // The person is not logged into Facebook, so we're not sure if
+      // they are logged into this app or not.
+      document.getElementById('status').innerHTML = 'Please log ' +
+        'into Facebook.';
+    }
+  }
+
+  // This function is called when someone finishes with the Login
+  // Button.  See the onlogin handler attached to it in the sample
+  // code below.
+  function checkLoginState() {
+    // FB.logout(function(response) {
+    //   // user is now logged out
+    // });
+
+    FB.getLoginStatus(function(response) {
+      statusChangeCallback(response);
+    });
+  }
+
+  window.fbAsyncInit = function() {
+  FB.init({
+    appId      : '171972626540476',
+    cookie     : true,  // enable cookies to allow the server to access
+                        // the session
+    xfbml      : true,  // parse social plugins on this page
+    version    : 'v2.5' // use graph api version 2.5
+  });
+
+  // Now that we've initialized the JavaScript SDK, we call
+  // FB.getLoginStatus().  This function gets the state of the
+  // person visiting this page and can return one of three states to
+  // the callback you provide.  They can be:
+  //
+  // 1. Logged into your app ('connected')
+  // 2. Logged into Facebook, but not your app ('not_authorized')
+  // 3. Not logged into Facebook and can't tell if they are logged into
+  //    your app or not.
+  //
+  // These three cases are handled in the callback function.
+
+  FB.getLoginStatus(function(response) {
+    statusChangeCallback(response);
+  });
+
+  };
+
+  // Load the SDK asynchronously
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+
+
+  // Here we run a very simple test of the Graph API after login is
+  // successful.  See statusChangeCallback() for when this call is made.
+  function testAPI(access_token) {
+
+    console.log('Welcome!  Fetching your information.... ');
+
+    FB.api('/me', 'get', {fields: 'id,name,gender,birthday' }, function(response) {
+      console.log(response.id);
+      user_id=response.id;
+      mi_nombre=response.name;
+      gender=response.gender;
+      birthday=response.birthday;
+
+      console.log("name:"+response.name);
+      console.log("gender:"+response.gender);
+      // console.log("age_range:"+response.age_range);
+      // console.log(response.age_range);
+      // console.log("bio:"+response.bio)
+      console.log("birthday:"+response.birthday);
+      // console.log("context:"+response.context);
+      // console.log(response.context);
+      // console.log("locale:"+response.locale);
+      // console.log("picture:"+response.picture);
+      // console.log(response.picture);
+      console.log('access_token:'+access_token);
+
+      // FB.api('/'+user_id+'/permissions', 'get', function(response) {
+      //   console.log("permissions:");
+      //   console.log(response);
+      // });
+
+      FB.api('/'+user_id, 'get', { access_token: access_token, fields: 'location,email', }, function(response) {
+        console.log("all:");
+        console.log(response);
+        location=response.location;
+        email=response.email;
+
+        FB.api('/'+user_id+"/picture", 'get', {type:'large'}, function(response) {
+          console.log("picture2:");
+          console.log(response);
+        });
+
+
+        // console.log("likes");
+
+        function doSomething(response){
+
+          if (response.paging.hasOwnProperty("next")){
+            console.log(response);
+            FB.api(response.paging.next, doSomething);
+            likes_counter+=response.data.length;
+          }
+          else {
+            likes_counter+=response.data.length;
+            console.log("first like:",response.data[response.data.length-1]);
+            anho_like=response.data[response.data.length-1].created_time;
+            var d = new Date(anho_like);
+            console.log("anho_like:",d.getFullYear());
+          }
+
+
+        }
+
+        FB.api('/'+user_id+"/likes",{limit:"8000"}, 'get', doSomething);
+        setTimeout(function(){
+          console.log("likes:", likes_counter);
+          if(likes_counter>likes_num)
+            likes_num_bool=true;
+          else {
+            likes_num_bool=false;
+          }
+        },5000);
+
+        FB.api('/'+user_id+"/friends", 'get', function(response) {
+          console.log("friends:");
+          console.log(response);
+          if(response.summary.total_count>friends_num)
+            friends_num_bool=true;
+          else {
+            friends_num_bool=false;
+          }
+        });
+
+        // FB.api('/'+user_id+"/friendlists", 'get', function(response) {
+        //   console.log("friendlists:");
+        //   console.log(response);
+        // });
+
+        FB.api('/'+user_id+"/photos",{limit:"100000"}, 'get', function(response) {
+          console.log("photos:");
+          console.log(response);
+          console.log("first foto:", response.data[response.data.length-1]);
+          anho_foto=response.data[response.data.length-1].created_time;
+          var d = new Date(anho_foto);
+          console.log("anho_foto:",d.getFullYear());
+          var largo = response.data.length;
+          var unique_names = new Array();
+          var all_names = new Array();
+          for(i=0;i<largo;i++)
+          {
+            FB.api('/'+response.data[i].id+"/tags", 'get', function(response2) {
+              // console.log(response2.data);
+              for(j=0;j<response2.data.length;j++)
+              {
+                // console.log(response2.data[j]);
+                all_names.push({id:response2.data[j].id,name:response2.data[j].name,value:1});
+                // console.log(_.contains(unique_names,response2.data[j].name));
+                if(!contiene(unique_names,{name:response2.data[j].name, id:response2.data[j].id}))
+                {
+                  // console.log({name:response2.data[j].name, id:response2.data[j].id});
+                  unique_names.push({name:response2.data[j].name, id:response2.data[j].id});
+                }
+
+              }
+
+            });
+          }
+          var res;
+
+          setTimeout(function(){console.log("unique_names:", unique_names);},2000);
+          setTimeout(function(){console.log("all_names:",all_names);},2000);
+          setTimeout(function(){console.log("cuenta:");},2000);
+          setTimeout(function(){
+            var cuenta = Array();
+            for(i=0;i<unique_names.length;i++)
+            {
+              var suma=0;
+              for(j=0; j<all_names.length;j++)
+              {
+                if(all_names[j].name==unique_names[i].name)
+                {
+                  // console.log("hoas");
+                  suma+=1;
+                }
+              }
+              cuenta.push({name:unique_names[i].name,id:unique_names[i].id,total:suma});
+            }
+            console.log(cuenta);
+            // console.log(cuenta[0]);
+            var friends_tagged_num=0;
+            for(i=0;i<3;i++)
+            {
+              var mayor=0;
+              var mayor_index=0;
+
+              for(j=0;j<cuenta.length;j++)
+              {
+                if(cuenta[j].total>=mayor)
+                {
+                  mayor=cuenta[j].total;
+                  mayor_index=j;
+                }
+              }
+              if(cuenta[mayor_index].name==mi_nombre)
+              {
+                i--;
+                console.log(cuenta[mayor_index]);
+                var request = {id:cuenta[mayor_index].id,name:cuenta[mayor_index].name,total:1};
+                console.log(JSON.stringify(request));
+
+                $.ajax({
+                    data: JSON.stringify(request),
+                    type: "POST",
+                    contentType: "application/json",
+                    url: "receive_data3.php"
+                })
+                 .done(
+
+                   function( data, textStatus, jqXHR ) {
+                     if ( console && console.log ) {
+                         console.log(jqXHR.responseText);
+                     }
+                     if(jqXHR.responseText!="1062")
+                     {
+                       yo_duplicado=false;
+                       console.log("yo_duplicado:", yo_duplicado);
+                     }
+                 })
+                 .fail(function( jqXHR, textStatus, errorThrown, XHR ) {
+                     if ( console && console.log ) {
+                         console.log( "La solicitud ha fallado: " +  textStatus);
+                         console.log( "La solicitud ha fallado: " +  errorThrown);
+                         console.log( "La solicitud ha fallado: " +  jqXHR.responseText);
+                     }
+                });
+                cuenta.splice(mayor_index,1);
+              }
+              else {
+                console.log(cuenta[mayor_index]);
+                users_to.push({id:cuenta[mayor_index].id,name:cuenta[mayor_index].name,total:1});
+
+                if(cuenta[mayor_index].total>photos_tagged)
+                  friends_tagged_num++;
+                cuenta.splice(mayor_index,1);
+              }
+
+            }
+            console.log(friends_tagged_num);
+            if(friends_tagged_num>=3)
+              photos_tagged_bool=true;
+            else {
+              photos_tagged_bool=false;
+            }
+          },2000);
+        });
+
+        // FB.api('/v2.8/'+response.photos.data[0].id,{fields: 'picture,webp_images'}, function(response) {
+        //   console.log("photos:");
+        //   console.log(response);
+        // });
+        function doSomething2(response){
+
+          if(response.data.length>feed_num)
+            feed_num_bool=true;
+          else {
+            feed_num_bool=false;
+          }
+
+          if(response.data.length>0)
+          {
+            if (response.paging.hasOwnProperty("next")){
+              console.log(response);
+              FB.api(response.paging.next, doSomething2);
+              feed_counter+=response.data.length
+              if(response.data.length<275)
+              {
+                console.log("first feed:",response.data[response.data.length-2]);
+                anho_post=response.data[response.data.length-2].created_time;
+                var d = new Date(anho_post);
+                console.log("anho_post:",d.getFullYear());
+              }
+
+            }
+            else {
+              console.log("first feed:",response.data[response.data.length-2]);
+              anho_post=response.data[response.data.length-2].created_time;
+              var d = new Date(anho_post);
+              console.log("anho_post:",d.getFullYear());
+            }
+          }
+
+        }
+
+        FB.api('/'+user_id+"/feed",{limit:"8000"}, 'get', doSomething2);
+        setTimeout(function()
+        {
+          console.log("feed:", feed_counter);
+          if(feed_counter>feed_num)
+            feed_num_bool=true;
+          else {
+            feed_num_bool=false;
+          }
+        },5000);
+
+        // FB.api('/'+user_id+"/likes",{limit:"8000"}, 'get', doSomething);
+        // setTimeout(function(){
+        //   console.log("likes:", likes_counter);
+        //   if(likes_counter>likes_num)
+        //     likes_num_bool=true;
+        //   else {
+        //     likes_num_bool=false;
+        //   }
+        // },3000);
+
+
+        // FB.api('/'+user_id+"/feed", {limit:"100000"}, 'get', function(response) {
+        //
+        // });
+
+        // FB.api('/'+user_id+"/family", 'get', function(response) {
+        //   console.log("family:");
+        //   console.log(response);
+        // });
+        //
+        // FB.api('/'+user_id+"/events", 'get', function(response) {
+        //   console.log("events:");
+        //   console.log(response);
+        // });
+        //
+        // FB.api('/'+user_id+"/accounts", 'get', function(response) {
+        //   console.log("accounts:");
+        //   console.log(response);
+        // });
+        //
+        // FB.api('/v1.0/'+user_id+"/locations", 'get', function(response) {
+        //   console.log("locations:");
+        //   console.log(response);
+        // });
+
+        setTimeout(function(){
+          console.log("likes bool:",likes_num_bool);
+          console.log("friends bool:",friends_num_bool);
+          console.log("photos tagged bool:",photos_tagged_bool);
+          console.log("feed bool:",feed_num_bool);
+          for(i=0;i<users_to.length && !yo_duplicado;i++)
+          {
+            var request = users_to[i];
+            console.log(JSON.stringify(request));
+
+            $.ajax({
+                data: JSON.stringify(request),
+                type: "POST",
+                contentType: "application/json",
+                url: "receive_data2.php"
+            })
+             .done(
+
+               function( data, textStatus, jqXHR ) {
+                 if ( console && console.log ) {
+                     console.log( "La solicitud se ha completado correctamente." );
+                     console.log( "La solicitud se ha completado correctamente."+textStatus );
+                     console.log( "La solicitud se ha completado correctamente."+jqXHR.responseText);
+                 }
+             })
+             .fail(function( jqXHR, textStatus, errorThrown, XHR ) {
+                 if ( console && console.log ) {
+                     console.log( "La solicitud ha fallado: " +  textStatus);
+                     console.log( "La solicitud ha fallado: " +  errorThrown);
+                     console.log( "La solicitud ha fallado: " +  jqXHR.responseText);
+                 }
+            });
+          }
+
+
+        },4000);
+      });
+
+
+
+    });
+
+    // console.log("uid:"+user_id);
+
+    // FB.api('/'+user_id, function(response) {
+    //   console.log('age_range: ' + response.age_range);
+    // });
+
+    }
+    function show() {
+      document.getElementById('nombre').innerHTML = mi_nombre;
+      document.getElementById('gender').innerHTML = gender;
+      document.getElementById('birthday').innerHTML = birthday;
+      document.getElementById('email').innerHTML = email;
+      document.getElementById('location').innerHTML = location;
+    }
+</script>
+
+<!--
+  Below we include the Login Button social plugin. This button uses
+  the JavaScript SDK to present a graphical Login button that triggers
+  the FB.login() function when clicked.
+-->
+
+<fb:login-button scope="public_profile,email,user_about_me,user_birthday,user_education_history,user_friends,user_games_activity,user_hometown,user_likes,user_location,user_photos,user_posts,user_relationship_details,user_relationships,user_religion_politics,user_status,user_tagged_places,user_videos,user_website,user_work_history" onlogin="checkLoginState();">
+</fb:login-button>
+
+<button type="button" onClick="show();">Mostrar Info</button>
+<!-- <fb:login-button scope="public_profile,email,user_birthday" auto_logout_link="false" onlogin="checkLoginState();">
+</fb:login-button> -->
+
+<div id="status">
+</div>
+    <table>
+        <tr>
+            <td id="nombre"></td>
+        </tr>
+        <tr>
+            <td id="birthday"></td>
+        </tr>
+        <tr>
+            <td id="gender"></td>
+        </tr>
+        <tr>
+            <td id="email"></td>
+        </tr>
+        <tr>
+            <td id="location"></td>
+        </tr>
+    </table>
+</body>
+</html>
