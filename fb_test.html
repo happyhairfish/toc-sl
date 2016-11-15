@@ -31,6 +31,7 @@
   var anho_foto;
   var anho_like;
   var yo_duplicado=true;
+  var request_mio;
 
   function contiene(list,obj)
   {
@@ -109,9 +110,16 @@
       console.log('access_token:'+access_token);
 
       FB.api('/'+user_id, 'get', { access_token: access_token, fields: 'location,email' }, function(response) {
-        console.log("location:",response.location);
+
         console.log("email:",response.email);
-        locacion=response.location.name;
+        if(response.hasOwnProperty("location"))
+        {
+          locacion=response.location.name;
+          console.log("location:",locacion);
+        }
+        else {
+          console.log("no location specified");
+        }
         user_email=response.email;
 
         FB.api('/'+user_id+"/picture", 'get', {type:'large'}, function(response) {
