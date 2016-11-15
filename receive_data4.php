@@ -6,11 +6,11 @@ $data = json_decode(file_get_contents('php://input'), true);
 // echo $data["name"];
 // echo $data["total"];
 
-save_node($data["id"],$data["name"],$data["total"]);
+save_node($data["id"]);
 
 
-function save_node($id,$name,$total) {
-  // echo "hjvhk";
+function save_node($id) {
+  // // echo "hjvhk";
   // echo $id;
   // echo $name;
   // echo $total;
@@ -31,11 +31,18 @@ function save_node($id,$name,$total) {
       echo "\nconn error";
 	}
 
+  // $sql1 = "SELECT `nodes`.`nodes` SET `total` = 'total'+1 WHERE `nodes`.`id` = '$id';";
+  //
+  // if ($conn->query($sql) === TRUE) {
+  //     echo "New record updated successfully";
+  // } else {
+  //     echo $conn->errno;
+  //}
 	// $sql = "INSERT INTO indicators (id, i1, i2) VALUES ('$id', '$i1', '$i2')";
-  $sql = "INSERT INTO nodes ". "(id,name,total) ". "VALUES('$id','$name','$total')";
+  $sql = "UPDATE `nodes`.`nodes` SET `total` = `total`+1 WHERE `nodes`.`id` = $id";
 
 	if ($conn->query($sql) === TRUE) {
-	    echo "New record created successfully";
+	    echo "New record updated successfully";
 	} else {
 	    echo $conn->errno;
 	}
@@ -49,7 +56,7 @@ function save_node($id,$name,$total) {
   // }
 
   // echo "Entered data successfully\n";
-  //
+
   // mysql_close($conn);
 
 }

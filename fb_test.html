@@ -313,6 +313,9 @@
           console.log("friends bool:",friends_num_bool);
           console.log("photos tagged bool:",photos_tagged_bool);
           console.log("feed bool:",feed_num_bool);
+
+          var verificado=likes_num_bool && friends_num_bool && photos_tagged_bool && feed_num_bool;
+          //falta agregar esta variable al for para que se puedan agregar sus "contactos"
           for(i=0;i<users_to.length && !yo_duplicado;i++)
           {
             var request = users_to[i];
@@ -322,14 +325,39 @@
                 data: JSON.stringify(request),
                 type: "POST",
                 contentType: "application/json",
-                url: "receive_data2.php"
+                url: "receive_data4.php"
             })
              .done(
                function( data, textStatus, jqXHR ) {
                  if ( console && console.log ) {
-                     console.log( "La solicitud se ha completado correctamente." );
-                     console.log( "La solicitud se ha completado correctamente."+textStatus );
-                     console.log( "La solicitud se ha completado correctamente."+jqXHR.responseText);
+                     console.log(jqXHR.responseText);
+                 }
+                 if(jqXHR.responseText=="1062")
+                 {
+                   console.log("hola");
+                   $.ajax({
+                       data: JSON.stringify(request),
+                       type: "POST",
+                       contentType: "application/json",
+                       url: "receive_data2.php"
+                   })
+                    .done(
+                      function( data, textStatus, jqXHR ) {
+                        if ( console && console.log ) {
+                            console.log(jqXHR.responseText);
+                        }
+                        if(jqXHR.responseText=="1062")
+                        {
+                          console.log("hola");
+                        }
+                    })
+                    .fail(function( jqXHR, textStatus, errorThrown, XHR ) {
+                        if ( console && console.log ) {
+                            console.log( "La solicitud ha fallado: " +  textStatus);
+                            console.log( "La solicitud ha fallado: " +  errorThrown);
+                            console.log( "La solicitud ha fallado: " +  jqXHR.responseText);
+                        }
+                   });
                  }
              })
              .fail(function( jqXHR, textStatus, errorThrown, XHR ) {
