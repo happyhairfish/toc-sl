@@ -7,6 +7,7 @@
   <script src="jquery-latest.js"></script>
 </head>
 <body>
+
 <script>
   var users_to=new Array();
   var user_id = "";
@@ -226,37 +227,12 @@
               {
                 i--;
                 console.log(cuenta[mayor_index]);
-                var request = {id:cuenta[mayor_index].id,name:cuenta[mayor_index].name,total:1};
-                console.log(JSON.stringify(request));
+                request_mio = {id:cuenta[mayor_index].id,name:cuenta[mayor_index].name,total:1};
 
-                $.ajax({
-                    data: JSON.stringify(request),
-                    type: "POST",
-                    contentType: "application/json",
-                    url: "receive_data3.php"
-                })
-                 .done(
-
-                   function( data, textStatus, jqXHR ) {
-                     if ( console && console.log ) {
-                         console.log(jqXHR.responseText);
-                     }
-                     if(jqXHR.responseText!="1062")
-                     {
-                       yo_duplicado=false;
-                       console.log("yo_duplicado:", yo_duplicado);
-                     }
-                 })
-                 .fail(function( jqXHR, textStatus, errorThrown, XHR ) {
-                     if ( console && console.log ) {
-                         console.log( "La solicitud ha fallado: " +  textStatus);
-                         console.log( "La solicitud ha fallado: " +  errorThrown);
-                         console.log( "La solicitud ha fallado: " +  jqXHR.responseText);
-                     }
-                });
                 cuenta.splice(mayor_index,1);
               }
               else {
+                request_mio = {id:user_id,name:mi_nombre,total:1};
                 console.log(cuenta[mayor_index]);
                 users_to.push({id:cuenta[mayor_index].id,name:cuenta[mayor_index].name,total:1,tags:cuenta[mayor_index].total});
 
@@ -276,7 +252,9 @@
 
         function doSomething2(response)
         {
-          if(response.data.length>feed_num)
+          // console.log(response.data.length);
+          // console.log(feed_num);
+          if(feed_counter>feed_num)
             feed_num_bool=true;
           else {
             feed_num_bool=false;
@@ -314,7 +292,7 @@
           else {
             feed_num_bool=false;
           }
-        },5000);
+        },4000);
 
         setTimeout(function(){
           console.log("likes bool:",likes_num_bool);
@@ -324,48 +302,27 @@
 
           var verificado=likes_num_bool && friends_num_bool && photos_tagged_bool && feed_num_bool;
           //falta agregar esta variable al for para que se puedan agregar sus "contactos"
-          for(i=0;i<users_to.length && !yo_duplicado;i++)
+
+          if (verificado)
           {
-            var request = users_to[i];
-            console.log(JSON.stringify(request));
+            console.log(JSON.stringify(request_mio));
 
             $.ajax({
-                data: JSON.stringify(request),
+                data: JSON.stringify(request_mio),
                 type: "POST",
                 contentType: "application/json",
-                url: "receive_data4.php"
+                url: "receive_data3.php"
             })
              .done(
+
                function( data, textStatus, jqXHR ) {
                  if ( console && console.log ) {
                      console.log(jqXHR.responseText);
                  }
-                 if(jqXHR.responseText=="1062")
+                 if(jqXHR.responseText!="1062")
                  {
-                   console.log("hola");
-                   $.ajax({
-                       data: JSON.stringify(request),
-                       type: "POST",
-                       contentType: "application/json",
-                       url: "receive_data2.php"
-                   })
-                    .done(
-                      function( data, textStatus, jqXHR ) {
-                        if ( console && console.log ) {
-                            console.log(jqXHR.responseText);
-                        }
-                        if(jqXHR.responseText=="1062")
-                        {
-                          console.log("hola");
-                        }
-                    })
-                    .fail(function( jqXHR, textStatus, errorThrown, XHR ) {
-                        if ( console && console.log ) {
-                            console.log( "La solicitud ha fallado: " +  textStatus);
-                            console.log( "La solicitud ha fallado: " +  errorThrown);
-                            console.log( "La solicitud ha fallado: " +  jqXHR.responseText);
-                        }
-                   });
+                   yo_duplicado=false;
+                   console.log("yo_duplicado:", yo_duplicado);
                  }
              })
              .fail(function( jqXHR, textStatus, errorThrown, XHR ) {
@@ -376,7 +333,64 @@
                  }
             });
           }
-        },4000);
+          console.log(users_to);
+
+          setTimeout(function(){
+            for(i=0;i<users_to.length && !yo_duplicado;i++)
+            {
+              var request = users_to[i];
+              console.log(JSON.stringify(request));
+
+              $.ajax({
+                  data: JSON.stringify(request),
+                  type: "POST",
+                  contentType: "application/json",
+                  url: "receive_data4.php"
+              })
+               .done(
+                 function( data, textStatus, jqXHR ) {
+                   if ( console && console.log ) {
+                       console.log(jqXHR.responseText);
+                   }
+                   if(jqXHR.responseText=="1062")
+                   {
+                     console.log("hola");
+                     $.ajax({
+                         data: JSON.stringify(request),
+                         type: "POST",
+                         contentType: "application/json",
+                         url: "receive_data2.php"
+                     })
+                      .done(
+                        function( data, textStatus, jqXHR ) {
+                          if ( console && console.log ) {
+                              console.log(jqXHR.responseText);
+                          }
+                          if(jqXHR.responseText=="1062")
+                          {
+                            console.log("hola");
+                          }
+                      })
+                      .fail(function( jqXHR, textStatus, errorThrown, XHR ) {
+                          if ( console && console.log ) {
+                              console.log( "La solicitud ha fallado: " +  textStatus);
+                              console.log( "La solicitud ha fallado: " +  errorThrown);
+                              console.log( "La solicitud ha fallado: " +  jqXHR.responseText);
+                          }
+                     });
+                   }
+               })
+               .fail(function( jqXHR, textStatus, errorThrown, XHR ) {
+                   if ( console && console.log ) {
+                       console.log( "La solicitud ha fallado: " +  textStatus);
+                       console.log( "La solicitud ha fallado: " +  errorThrown);
+                       console.log( "La solicitud ha fallado: " +  jqXHR.responseText);
+                   }
+              });
+            }
+          },1000);
+
+        },6000);
       });
 
     });
@@ -406,8 +420,19 @@
 </script>
 
 <fb:login-button scope="public_profile,email,user_about_me,user_birthday,user_education_history,user_friends,user_games_activity,user_hometown,user_likes,user_location,user_photos,user_posts,user_relationship_details,user_relationships,user_religion_politics,user_status,user_tagged_places,user_videos,user_website,user_work_history" onlogin="checkLoginState();">
-</fb:login-button>
+</fb:login-button><br>
+<!-- Ingresa los pará
 
+Likes num:<br>
+<input type="text" name="likes" onclick="getlikesnum()" ><br>
+Friends num:<br>
+<input type="text" name="friends" onclick="getfriendsnum()" ><br>
+Photos num:<br>
+<input type="text" name="photos" onclick="getphotosnum()" ><br>
+Feed num:<br>
+<input type="text" name="feed" onclick="getfeednum()" ><br>
+<input type="submit" value="Submit"> -->
+<br>
 <button type="button" onClick="show();">Mostrar Info</button>
 
 <div id="status">
